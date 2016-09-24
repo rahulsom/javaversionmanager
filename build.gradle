@@ -7,6 +7,8 @@ dependencies {
   compile 'org.jsoup:jsoup:1.9.2'
   compile 'com.opencsv:opencsv:3.8'
   compile 'com.google.code.gson:gson:2.7'
+
+  testCompile 'org.gaelyk:gaelyk-spock:0.5'
 }
 
 idea {
@@ -14,6 +16,8 @@ idea {
     sourceDirs += file('app')
   }
 }
+
+sourceSets.test.groovy.srcDirs += 'app'
 
 appengine {
     appcfg {
