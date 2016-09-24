@@ -45,3 +45,5 @@ node_modules/
 src/assets/bower
 
 npm-debug.log
+
+.appcfg_oauth2_tokens_java
