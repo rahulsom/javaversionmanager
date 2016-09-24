@@ -71,7 +71,9 @@ class JavaServiceFacade {
         collect {
           def version = it.text()
           def href = it.attr('href')
-          def versions = getArchiveVersions(new URL("${rootUrl.protocol}://${rootUrl.host}:${rootUrl.port}${href}").toString(), version)
+          def versions = rootUrl.port > 0 ?
+              getArchiveVersions(new URL("${rootUrl.protocol}://${rootUrl.host}:${rootUrl.port}${href}").toString(), version) :
+              getArchiveVersions(new URL("${rootUrl.protocol}://${rootUrl.host}${href}").toString(), version)
           new JavaMajorVersion(version: version, link: href, versions: versions)
         }
   }
