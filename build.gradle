@@ -3,6 +3,11 @@ plugins {
   id 'idea'
 }
 
+dependencies {
+  compile 'org.jsoup:jsoup:1.9.2'
+  compile 'com.opencsv:opencsv:3.8'
+}
+
 idea {
   module {
     sourceDirs += file('app')
