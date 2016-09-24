@@ -21,7 +21,7 @@ class JavaServiceFacade {
   MemcacheService theCache = MemcacheServiceFactory.memcacheService
 
   Closure<String> getUrl = theCache.memoize { String url ->
-    log.warning "Fetching $url"
+    log.info "Fetching $url"
     new URL(url).get().text
   }
 

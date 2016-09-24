@@ -32,13 +32,14 @@ if (!(format in ['text/tab-separated-values', 'application/json'])) {
         findAll { b -> version ? b.key.contains(version) : true }
 
     tags.each { t ->
-      log.warning "Filtering ${builds.size()} builds for $t"
+      log.info "Filtering ${builds.size()} builds for $t"
       if (t.startsWith('!')) {
         builds = builds.findAll { b -> !b.tags.contains(t[1..-1]) }
       } else {
         builds = builds.findAll { b -> b.tags.contains(t) }
       }
     }
+    log.info "Result is ${builds.size()} builds ${memcacheKey}"
 
     String resp
     switch (format) {
