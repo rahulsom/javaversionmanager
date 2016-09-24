@@ -18,6 +18,8 @@ if (!(format in ['text/tab-separated-values', 'application/json'])) {
 } else {
   def memcacheKey = "${format}+${tags.toSorted().join(',')}+${version ?: 'all'}"
   if (memcache.contains(memcacheKey)) {
+    response.setHeader('X-CacheKey', memcacheKey)
+    response.setHeader('X-CacheStatus', 'Hit')
     println memcache.get(memcacheKey)
   } else {
 
@@ -51,6 +53,8 @@ if (!(format in ['text/tab-separated-values', 'application/json'])) {
     }
 
     memcache.put(memcacheKey, resp, byDeltaSeconds(60* 60 * 24), SET_ALWAYS)
+    response.setHeader('X-CacheKey', memcacheKey)
+    response.setHeader('X-CacheStatus', 'Miss')
     println resp
   }
 
