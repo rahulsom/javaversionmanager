@@ -6,6 +6,7 @@ plugins {
 dependencies {
   compile 'org.jsoup:jsoup:1.9.2'
   compile 'com.opencsv:opencsv:3.8'
+  compile 'com.google.code.gson:gson:2.7'
 }
 
 idea {

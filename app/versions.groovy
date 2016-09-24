@@ -73,5 +73,5 @@ private String writeTsv(List<JavaBuild> versionLinks) {
   })
   writer.flush()
   writer.close()
-  writer.toString()
+  sw.toString()
 }

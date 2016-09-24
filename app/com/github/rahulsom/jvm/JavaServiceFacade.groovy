@@ -1,8 +1,9 @@
 package com.github.rahulsom.jvm
 
-import com.github.rahulsom.jvm.utils.CacheUtils
 import com.google.appengine.api.memcache.MemcacheService
 import com.google.appengine.api.memcache.MemcacheServiceFactory
+import com.google.appengine.repackaged.com.google.gson.Gson
+import com.google.appengine.repackaged.com.google.gson.reflect.TypeToken
 import groovy.util.logging.Log
 import org.jsoup.Jsoup
 
@@ -24,6 +25,7 @@ class JavaServiceFacade {
     log.info "Fetching $url"
     new URL(url).get().text
   }
+  private Gson gson
 
   List<JavaReleaseVersion> getArchiveVersions(String url, String majorVersion) {
     def document = Jsoup.parse(getUrl.call(url))
@@ -55,12 +57,18 @@ class JavaServiceFacade {
     def archiveVersions = 'archiveVersions'
     def expirationTime = 60 * 60 * 24
 
-    if (reload) {
+    gson = new Gson()
+
+    if (reload || !theCache.contains(archiveVersions)) {
       def versions = computeArchiveVersions()
-      CacheUtils.theCache.clearAll()
-      CacheUtils.theCache.put(archiveVersions, versions, byDeltaSeconds(expirationTime), SET_ALWAYS)
+      theCache.clearAll()
+      def json = gson.toJson(versions)
+      theCache.put(archiveVersions, json, byDeltaSeconds(expirationTime), SET_ALWAYS)
     }
-    CacheUtils.getOrCompute(archiveVersions, expirationTime) { computeArchiveVersions() }
+
+    def collectionType = new TypeToken<Collection<JavaMajorVersion>>() {}.type;
+    def json = theCache.get(archiveVersions) as String
+    gson.fromJson(json, collectionType) as List<JavaMajorVersion>
   }
 
   private List<JavaMajorVersion> computeArchiveVersions() {
