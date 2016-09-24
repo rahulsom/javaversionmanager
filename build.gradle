@@ -1,9 +1,13 @@
-
 plugins {
   id "com.appspot.glide-gae" version "0.9.3"
+  id 'idea'
 }
 
-sourceSets.main.groovy.srcDirs += 'app'
+idea {
+  module {
+    sourceDirs += file('app')
+  }
+}
 
 appengine {
     appcfg {
