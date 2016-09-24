@@ -12,6 +12,8 @@ import groovy.util.logging.Log
 @Log
 class JavaBuild implements Serializable {
 
+  static final long serialVersionUID = 1L;
+
   String title, size, filePath, key, majorVersion
 
   Set<String> getTags() {

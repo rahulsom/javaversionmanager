@@ -11,6 +11,7 @@ import groovy.transform.ToString
 @ToString
 @CompileStatic
 class JavaReleaseVersion implements Serializable {
+  static final long serialVersionUID = 1L;
   String key, versionTitle
   List<JavaBuild> builds = []
 }

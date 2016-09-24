@@ -11,7 +11,7 @@ import groovy.transform.ToString
 @CompileStatic
 @ToString
 class JavaMajorVersion implements Serializable {
-  String version
-  String link
+  static final long serialVersionUID = 1L;
+  String version, link
   List<JavaReleaseVersion> versions
 }
