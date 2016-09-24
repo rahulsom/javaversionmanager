@@ -62,7 +62,7 @@ if (!(format in ['text/tab-separated-values', 'application/json'])) {
 }
 
 private String writeJson(List<JavaBuild> versionLinks) {
-  new JsonBuilder(versionLinks).toPrettyString()
+  new JsonBuilder(versionLinks).toString()
 }
 
 private String writeTsv(List<JavaBuild> versionLinks) {
