@@ -4,3 +4,9 @@ plugins {
 }
 
 sourceSets.main.groovy.srcDirs += 'app'
+
+appengine {
+    appcfg {
+        oauth2 = true
+    }
+}
