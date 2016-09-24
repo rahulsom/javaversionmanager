@@ -9,6 +9,9 @@ import org.jsoup.Jsoup
 
 import static com.google.appengine.api.memcache.Expiration.byDeltaSeconds
 import static com.google.appengine.api.memcache.MemcacheService.SetPolicy.SET_ALWAYS
+import java.util.zip.GZIPInputStream
+import java.util.zip.GZIPOutputStream
+
 
 /**
  * Downloads lists from a service
@@ -61,11 +64,11 @@ class JavaServiceFacade {
       def versions = computeArchiveVersions()
       theCache.clearAll()
       def json = gson.toJson(versions)
-      theCache.put(archiveVersions, json, byDeltaSeconds(expirationTime), SET_ALWAYS)
+      theCache.put(archiveVersions, zip(json), byDeltaSeconds(expirationTime), SET_ALWAYS)
     }
 
     def collectionType = new TypeToken<Collection<JavaMajorVersion>>() {}.type;
-    def json = theCache.get(archiveVersions) as String
+    def json = unzip(theCache.get(archiveVersions) as String)
     gson.fromJson(json, collectionType) as List<JavaMajorVersion>
   }
 
@@ -83,4 +86,21 @@ class JavaServiceFacade {
           new JavaMajorVersion(version: version, link: href, versions: versions)
         }
   }
+
+  def zip(String s) {
+    def targetStream = new ByteArrayOutputStream()
+    def zipStream = new GZIPOutputStream(targetStream)
+    zipStream.write(s.getBytes('UTF-8'))
+    zipStream.close()
+    def zippedBytes = targetStream.toByteArray()
+    targetStream.close()
+    return zippedBytes.encodeBase64() as String
+  }
+
+  def unzip(String compressed) {
+    def inflaterStream = new GZIPInputStream(new ByteArrayInputStream(compressed.decodeBase64()))
+    def uncompressedStr = inflaterStream.getText('UTF-8')
+    return uncompressedStr as String
+  }
+
 }
