@@ -59,8 +59,8 @@ class JavaBuild implements Serializable {
   @Memoized
   private static String computeVersion(String key) {
     switch (key) {
-      case ~/(\d+-)?(jdk|jre|sjre|j2sdk|j2re)-1\.((\d+)(\.\d+)?)B?(_(\d+[^-]+))?-.*/:
-        def m = key =~ /(\d+-)?(jdk|jre|sjre|j2sdk|j2re)-1\.((\d+)(\.\d+)?)B?(_(\d+[^-]+))?-.*/
+      case ~/(\d+-)?(jdk|jre|sjre|j2sdk|j2re)-1\.((\d+)(\.\d+)?)[AB]?(_(\d+[^-]+))?-.*/:
+        def m = key =~ /(\d+-)?(jdk|jre|sjre|j2sdk|j2re)-1\.((\d+)(\.\d+)?)[AB]?(_(\d+[^-]+))?-.*/
         def major = (m[0].size() < 5 || m[0][5] == null || m[0][5] == '.0') ? m[0][4] : m[0][3]
         if ((m[0].size() > 6 && m[0][7])) {
           def minor = m[0][7]

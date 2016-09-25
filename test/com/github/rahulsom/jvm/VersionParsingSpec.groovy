@@ -28,5 +28,6 @@ class VersionParsingSpec extends Specification {
     'JREDE-122_05-IN-G-F'           | '2.2u5'
     'JDKDE-122_05-SP-G-F'           | '2.2u5'
     'J2SDK-130-SP-G-JS'             | '3u0'
+    '7237-jdk-1.1.1A-oth-JPR '      | '1.1u0'
   }
 }
