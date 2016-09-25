@@ -73,7 +73,6 @@ class JavaBuild implements Serializable {
         }
       case ~/(JRE|JDK|J2RE|J2SDK|JRE..|JDK..)-1(\d)(\d)(_(\d+))?-.*/:
         def m = key =~ /(JRE|JDK|J2RE|J2SDK|JRE..|JDK..)-1(\d)(\d)(_(\d+))?-.*/
-        log.info "m: ${m[0]}"
         def major = m[0][2]
         def minor = m[0][3] == '0' ? '' : m[0][3]
         def build = m[0][5] ?: '0'
