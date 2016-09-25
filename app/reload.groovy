@@ -1,5 +1,5 @@
 import com.github.rahulsom.jvm.JavaServiceFacade
 
-new JavaServiceFacade().getArchivedVersions(true)
+new JavaServiceFacade().getArchivedBuilds(true)
 
 println "Done"

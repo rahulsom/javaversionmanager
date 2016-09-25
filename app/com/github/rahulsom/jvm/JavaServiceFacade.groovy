@@ -67,20 +67,20 @@ class JavaServiceFacade {
     }.flatten() as List<JavaReleaseVersion>
   }
 
-  List<JavaMajorVersion> getArchivedVersions(boolean reload = false) {
-    def archiveVersions = 'archiveVersions'
+  List<JavaBuild> getArchivedBuilds(boolean reload = false) {
+    def memcacheKey = 'archiveVersions'
     def expirationTime = 60 * 60 * 24
 
-    if (reload || !theCache.contains(archiveVersions)) {
-      def versions = computeArchiveVersions()
+    if (reload || !theCache.contains(memcacheKey)) {
+      def versions = computeArchiveVersions()*.versions*.builds.flatten()
+      def json = zip(gson.toJson(versions))
       theCache.clearAll()
-      def json = gson.toJson(versions)
-      theCache.put(archiveVersions, zip(json), byDeltaSeconds(expirationTime), SET_ALWAYS)
+      theCache.put(memcacheKey, json, byDeltaSeconds(expirationTime), SET_ALWAYS)
     }
 
-    def collectionType = new TypeToken<Collection<JavaMajorVersion>>() {}.type;
-    def json = unzip(theCache.get(archiveVersions) as String)
-    gson.fromJson(json, collectionType) as List<JavaMajorVersion>
+    def collectionType = new TypeToken<Collection<JavaBuild>>() {}.type;
+    def json = unzip(theCache.get(memcacheKey) as byte[])
+    gson.fromJson(json, collectionType) as List<JavaBuild>
   }
 
   private List<JavaMajorVersion> computeArchiveVersions() {
@@ -98,18 +98,18 @@ class JavaServiceFacade {
         }
   }
 
-  def zip(String s) {
+  static byte[] zip(String s) {
     def targetStream = new ByteArrayOutputStream()
     def zipStream = new GZIPOutputStream(targetStream)
     zipStream.write(s.getBytes('UTF-8'))
     zipStream.close()
     def zippedBytes = targetStream.toByteArray()
     targetStream.close()
-    return zippedBytes.encodeBase64() as String
+    return zippedBytes
   }
 
-  def unzip(String compressed) {
-    def inflaterStream = new GZIPInputStream(new ByteArrayInputStream(compressed.decodeBase64()))
+  static String unzip(byte[] compressed) {
+    def inflaterStream = new GZIPInputStream(new ByteArrayInputStream(compressed))
     def uncompressedStr = inflaterStream.getText('UTF-8')
     return uncompressedStr as String
   }

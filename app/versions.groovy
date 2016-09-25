@@ -23,10 +23,7 @@ if (!(format in ['text/tab-separated-values', 'application/json'])) {
     println memcache.get(memcacheKey)
   } else {
 
-    List<JavaBuild> allBuilds = new JavaServiceFacade().archivedVersions.
-        collectNested { it.versions }.
-        collectNested { it.builds }.
-        flatten() as List<JavaBuild>
+    List<JavaBuild> allBuilds = new JavaServiceFacade().archivedBuilds
 
     List<JavaBuild> builds = allBuilds.
         findAll { b -> version ? b.version == version : true }
