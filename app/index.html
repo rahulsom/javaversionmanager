@@ -64,29 +64,29 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.16.1/lodash.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <script>
-      function getTags(build) {
-        return _.chain(build.tags).join().value()
-      }
-      $(function () {
-        $.getJSON('/versions', data=> {
-          var versions = _.chain(data).map(build=>build.version).uniq().value();
-          var tagSets = _.chain(data).map(build=> getTags(build)).uniq().sortBy(x => x).value();
-          console.log(versions);
-          console.log(tagSets);
-          var tableData = [];
-          _.each(versions, version => {
-            var newRow = {};
-            newRow.version = version;
-            _.each(tagSets, tagSet => {
-              newRow[tagSet] =
-                  _.filter(data, build => build.version == version && getTags(build) == tagSet).length;
-            });
-            tableData.push(newRow);
-          });
-          console.table(tableData);
-        });
-      })
-    </script>
+    <!--<script>-->
+      <!--function getTags(build) {-->
+        <!--return _.chain(build.tags).join().value()-->
+      <!--}-->
+      <!--$(function () {-->
+        <!--$.getJSON('/versions', data=> {-->
+          <!--var versions = _.chain(data).map(build=>build.version).uniq().value();-->
+          <!--var tagSets = _.chain(data).map(build=> getTags(build)).uniq().sortBy(x => x).value();-->
+          <!--console.log(versions);-->
+          <!--console.log(tagSets);-->
+          <!--var tableData = [];-->
+          <!--_.each(versions, version => {-->
+            <!--var newRow = {};-->
+            <!--newRow.version = version;-->
+            <!--_.each(tagSets, tagSet => {-->
+              <!--newRow[tagSet] =-->
+                  <!--_.filter(data, build => build.version == version && getTags(build) == tagSet).length;-->
+            <!--});-->
+            <!--tableData.push(newRow);-->
+          <!--});-->
+          <!--console.table(tableData);-->
+        <!--});-->
+      <!--})-->
+    <!--</script>-->
   </body>
 </html>
