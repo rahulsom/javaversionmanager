@@ -23,11 +23,11 @@ class JavaBuild implements Serializable {
         jdk    : filePath.contains('jdk') && !filePath.contains('jre') && !filePath.contains('doc'),
         sjre   : key.contains('sjre') || filePath.contains('server-jre'),
 
-        macos  : filePath.endsWith('.dmg'),
-        win    : filePath.endsWith('.exe'),
+        macos  : filePath.endsWith('.dmg') || filePath.contains('macosx'),
+        win    : filePath.endsWith('.exe') || filePath.contains('windows'),
         rpm    : filePath.endsWith('.rpm') || filePath.endsWith('rpm.bin'),
         linux  : (title.toLowerCase().contains('linux') || filePath.contains('linux')) && !filePath.contains('rpm'),
-        solaris: title.toLowerCase().contains('solaris') || filePath.contains('solaris'),
+        solaris: title.toLowerCase().contains('solaris') || filePath.contains('solaris') || filePath.contains('solsparc'),
 
         arm32  : filePath.contains('arm-') || filePath.contains('arm32-'),
         arm64  : filePath.contains('arm64-'),
