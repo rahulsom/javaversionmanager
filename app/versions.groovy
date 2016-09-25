@@ -13,7 +13,7 @@ if (format == '*/*') {
   format = 'text/tab-separated-values'
 }
 
-if (!(format in ['text/tab-separated-values', 'application/json'])) {
+if (!(format.contains('text/tab-separated-values') || format.contains('application/json'))) {
   response.sendError(400, 'Bad Request: Invalid content type requested')
 } else {
   def memcacheKey = "${format}+${tags.toSorted().join(',')}+${version ?: 'all'}"
@@ -40,7 +40,11 @@ if (!(format in ['text/tab-separated-values', 'application/json'])) {
 
     String resp
     switch (format) {
-      case 'application/json':
+      case ~/.*text\/tab-separated-values.*/:
+        response.contentType = 'text/tab-separated-values'
+        resp = writeTsv(builds)
+        break
+      case ~/.*application\/json.*/:
         response.contentType = 'application/json'
         resp = writeJson(builds)
         break
