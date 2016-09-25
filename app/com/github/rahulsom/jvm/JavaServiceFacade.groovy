@@ -22,12 +22,8 @@ class JavaServiceFacade {
   private static final String currentUrl = 'http://www.oracle.com/technetwork/indexes/downloads/index.html'
   private static final String earlyAccessUrl = 'https://jdk9.java.net/download/'
 
-  MemcacheService theCache = MemcacheServiceFactory.memcacheService
-
-  Closure<String> getUrl = theCache.memoize { String url ->
-    log.info "Fetching $url"
-    new URL(url).get().text
-  }
+  private MemcacheService theCache = MemcacheServiceFactory.memcacheService
+  private Closure<String> getUrl = theCache.memoize { String url -> new URL(url).get().text }
   private Gson gson = new Gson()
 
   List<JavaReleaseVersion> getArchiveVersions(String url, String majorVersion) {
@@ -43,12 +39,27 @@ class JavaServiceFacade {
         new JavaReleaseVersion(key: m[0][1].trim(), versionTitle: m[0][2].trim())
       }
 
-      def fileLineRegex = /downloads\['(.+)'\]\['files'\]\['(.+)'\] = \{ *"title": *"(.+)", *"size": *"(.+)", *"filepath": *"(.+)",? *\};/
+      def fileLineRegex =
+          /downloads\['(.+)'\]\['files'\]\['(.+)'\] = \{ *"title": *"(.+)", *"size": *"(.+)", *"filepath": *"(.+)",? *\};/
       body.findAll(fileLineRegex).collect { fileLine ->
         def m = fileLine =~ fileLineRegex
         def version = clVal.find { it.key == m[0][1] }
         if (version) {
-          version.builds.add(new JavaBuild(title: m[0][3].trim(), size: m[0][4].trim(), filePath: m[0][5].trim(), key: version.key, majorVersion: majorVersion))
+          def filePath = m[0][5].trim() as String
+          def size = m[0][4].trim() as String
+          def title = m[0][3].trim() as String
+          if (!filePath.contains('jre_config') &&
+              !filePath.endsWith('.ps') &&
+              !filePath.endsWith('.pdf') &&
+              !filePath.endsWith('.html') &&
+              !filePath.contains('README') &&
+              !filePath.contains('docs') &&
+              !filePath.contains('-doc') &&
+              !title.contains('JDK Packages and Documentation')
+          ) {
+            version.builds.add(new JavaBuild(title: title, size: size, filePath: filePath,
+                key: version.key, majorVersion: majorVersion))
+          }
         }
       }
 
