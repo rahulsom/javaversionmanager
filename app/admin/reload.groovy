@@ -1,5 +1,7 @@
+package admin
+
 import com.github.rahulsom.jvm.JavaServiceFacade
 
-new JavaServiceFacade().getArchivedBuilds(true)
+new JavaServiceFacade().getBuilds(true)
 
 println "Done"

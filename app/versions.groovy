@@ -23,7 +23,7 @@ if (!(format.contains('text/tab-separated-values') || format.contains('applicati
     println memcache.get(memcacheKey)
   } else {
 
-    List<JavaBuild> allBuilds = new JavaServiceFacade().archivedBuilds
+    List<JavaBuild> allBuilds = new JavaServiceFacade().builds
 
     List<JavaBuild> builds = allBuilds.
         findAll { b -> version ? b.version == version : true }

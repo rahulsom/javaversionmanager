@@ -1,63 +1,92 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Java Version Manager</title>
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" media="screen">
-        <link href="/custom.css" rel="stylesheet" media="screen">
-    </head>
-    <body>
+  <head>
+    <title>Java Version Manager</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"
+          media="screen">
+    <link href="/styles/custom.css" rel="stylesheet" media="screen">
+  </head>
+  <body>
 
-        <div class="container">
-            <!--<div class="header clearfix">-->
-                <!--<nav>-->
-                    <!--<ul class="nav nav-pills pull-right">-->
-                        <!--<li role="presentation" class="active"><a href="#">Home</a></li>-->
-                        <!--<li role="presentation"><a href="#">About</a></li>-->
-                        <!--<li role="presentation"><a href="#">Contact</a></li>-->
-                    <!--</ul>-->
-                <!--</nav>-->
-                <!--<h3 class="text-muted">Java Version Manager</h3>-->
-            <!--</div>-->
+    <div class="container">
+      <!--<div class="header clearfix">-->
+      <!--<nav>-->
+      <!--<ul class="nav nav-pills pull-right">-->
+      <!--<li role="presentation" class="active"><a href="#">Home</a></li>-->
+      <!--<li role="presentation"><a href="#">About</a></li>-->
+      <!--<li role="presentation"><a href="#">Contact</a></li>-->
+      <!--</ul>-->
+      <!--</nav>-->
+      <!--<h3 class="text-muted">Java Version Manager</h3>-->
+      <!--</div>-->
 
-            <div class="jumbotron">
-                <h1>jvm.sh</h1>
-                <p class="lead">Cras justo odio, dapibus ac facilisis in, egestas eget quam. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
-                <p><a class="btn btn-lg btn-success" href="#" role="button">Sign up today</a></p>
-            </div>
+      <div class="jumbotron">
+        <h1>jvm.sh</h1>
+        <p class="lead">Cras justo odio, dapibus ac facilisis in, egestas eget quam. Fusce dapibus, tellus ac
+          cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
+        <p><a class="btn btn-lg btn-success" href="#" role="button">Sign up today</a></p>
+      </div>
 
-            <div class="row marketing">
-                <div class="col-lg-6">
-                    <h4>Subheading</h4>
-                    <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
+      <div class="row marketing">
+        <div class="col-lg-6">
+          <h4>Subheading</h4>
+          <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
 
-                    <h4>Subheading</h4>
-                    <p>Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Cras mattis consectetur purus sit amet fermentum.</p>
+          <h4>Subheading</h4>
+          <p>Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Cras mattis consectetur purus sit
+            amet fermentum.</p>
 
-                    <h4>Subheading</h4>
-                    <p>Maecenas sed diam eget risus varius blandit sit amet non magna.</p>
-                </div>
+          <h4>Subheading</h4>
+          <p>Maecenas sed diam eget risus varius blandit sit amet non magna.</p>
+        </div>
 
-                <div class="col-lg-6">
-                    <h4>Subheading</h4>
-                    <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
+        <div class="col-lg-6">
+          <h4>Subheading</h4>
+          <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
 
-                    <h4>Subheading</h4>
-                    <p>Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Cras mattis consectetur purus sit amet fermentum.</p>
+          <h4>Subheading</h4>
+          <p>Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Cras mattis consectetur purus sit
+            amet fermentum.</p>
 
-                    <h4>Subheading</h4>
-                    <p>Maecenas sed diam eget risus varius blandit sit amet non magna.</p>
-                </div>
-            </div>
+          <h4>Subheading</h4>
+          <p>Maecenas sed diam eget risus varius blandit sit amet non magna.</p>
+        </div>
+      </div>
 
-            <footer class="footer">
-                <p>&copy; 2016 Rahul Somasunderam</p>
-            </footer>
+      <footer class="footer">
+        <p>&copy; 2016 Rahul Somasunderam</p>
+      </footer>
 
-        </div> <!-- /container -->
+    </div> <!-- /container -->
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    </body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.16.1/lodash.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script>
+      function getTags(build) {
+        return _.chain(build.tags).join().value()
+      }
+      $(function () {
+        $.getJSON('/versions', data=> {
+          var versions = _.chain(data).map(build=>build.version).uniq().value();
+          var tagSets = _.chain(data).map(build=> getTags(build)).uniq().sortBy(x => x).value();
+          console.log(versions);
+          console.log(tagSets);
+          var tableData = [];
+          _.each(versions, version => {
+            var newRow = {};
+            newRow.version = version;
+            _.each(tagSets, tagSet => {
+              newRow[tagSet] =
+                  _.filter(data, build => build.version == version && getTags(build) == tagSet).length;
+            });
+            tableData.push(newRow);
+          });
+          console.table(tableData);
+        });
+      })
+    </script>
+  </body>
 </html>

@@ -26,7 +26,23 @@ class JavaServiceFacade {
   private Closure<String> getUrl = theCache.memoize { String url -> new URL(url).get().text }
   private Gson gson = new Gson()
 
-  List<JavaReleaseVersion> getArchiveVersions(String url, String majorVersion) {
+  List<JavaBuild> getBuilds(boolean reload = false) {
+    def memcacheKey = 'archiveVersions'
+    def expirationTime = 60 * 60 * 24
+
+    if (reload || !theCache.contains(memcacheKey)) {
+      def versions = computeArchiveVersions()*.versions*.builds.flatten()
+      def json = zip(gson.toJson(versions))
+      theCache.clearAll()
+      theCache.put(memcacheKey, json, byDeltaSeconds(expirationTime), SET_ALWAYS)
+    }
+
+    def collectionType = new TypeToken<Collection<JavaBuild>>() {}.type;
+    def json = unzip(theCache.get(memcacheKey) as byte[])
+    gson.fromJson(json, collectionType) as List<JavaBuild>
+  }
+
+  private List<JavaReleaseVersion> getArchiveVersions(String url, String majorVersion) {
     def document = Jsoup.parse(getUrl.call(url))
 
     def scripts = document.select('script')*.data().
@@ -67,22 +83,6 @@ class JavaServiceFacade {
     }.flatten() as List<JavaReleaseVersion>
   }
 
-  List<JavaBuild> getArchivedBuilds(boolean reload = false) {
-    def memcacheKey = 'archiveVersions'
-    def expirationTime = 60 * 60 * 24
-
-    if (reload || !theCache.contains(memcacheKey)) {
-      def versions = computeArchiveVersions()*.versions*.builds.flatten()
-      def json = zip(gson.toJson(versions))
-      theCache.clearAll()
-      theCache.put(memcacheKey, json, byDeltaSeconds(expirationTime), SET_ALWAYS)
-    }
-
-    def collectionType = new TypeToken<Collection<JavaBuild>>() {}.type;
-    def json = unzip(theCache.get(memcacheKey) as byte[])
-    gson.fromJson(json, collectionType) as List<JavaBuild>
-  }
-
   private List<JavaMajorVersion> computeArchiveVersions() {
     def rootUrl = new URL(archiveUrl)
     def document = Jsoup.parse(getUrl.call(rootUrl.toString()))
@@ -98,7 +98,7 @@ class JavaServiceFacade {
         }
   }
 
-  static byte[] zip(String s) {
+  private static byte[] zip(String s) {
     def targetStream = new ByteArrayOutputStream()
     def zipStream = new GZIPOutputStream(targetStream)
     zipStream.write(s.getBytes('UTF-8'))
@@ -108,7 +108,7 @@ class JavaServiceFacade {
     return zippedBytes
   }
 
-  static String unzip(byte[] compressed) {
+  private static String unzip(byte[] compressed) {
     def inflaterStream = new GZIPInputStream(new ByteArrayInputStream(compressed))
     def uncompressedStr = inflaterStream.getText('UTF-8')
     return uncompressedStr as String
