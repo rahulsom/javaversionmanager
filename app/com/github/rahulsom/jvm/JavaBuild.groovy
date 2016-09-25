@@ -17,38 +17,49 @@ class JavaBuild implements Serializable {
 
   String title, size, filePath, key, majorVersion
 
-  Set<String> getTags() {
-    def tagEvaluators = [
-        jre    : filePath.contains('jre') || title.contains('Runtime'),
-        jdk    : filePath.contains('jdk') && !filePath.contains('jre') && !filePath.contains('doc'),
-        sjre   : key.contains('sjre') || filePath.contains('server-jre'),
+  List<String> getTags() {
+    def retval = []
+    def buildTypeEvaluators = [
+        jre : filePath.contains('jre') || title.contains('Runtime'),
+        jdk : filePath.contains('jdk') && !filePath.contains('jre') && !filePath.contains('doc'),
+        sjre: key.contains('sjre') || filePath.contains('server-jre'),
+    ]
+    retval += buildTypeEvaluators.findAll { k, v -> v }.keySet() ?: 'othertype'
+    if (retval.contains('jre') && retval.contains('sjre')) {
+      retval -= 'jre'
+    }
 
+    def osEvaluators = [
         macos  : filePath.endsWith('.dmg') || filePath.contains('macosx'),
         win    : filePath.endsWith('.exe') || filePath.contains('windows'),
-        rpm    : filePath.endsWith('.rpm') || filePath.endsWith('rpm.bin'),
-        linux  : (title.toLowerCase().contains('linux') || filePath.contains('linux')) && !filePath.contains('rpm'),
-        solaris: title.toLowerCase().contains('solaris') || filePath.contains('solaris') || filePath.contains('solsparc'),
+        linux  : (title.toLowerCase().contains('linux') || filePath.contains('linux')),
+        solaris: title.toLowerCase().contains('solaris') || filePath.contains('solaris') || filePath.contains('solsparc') || filePath.contains('solx86'),
+    ]
+    retval += osEvaluators.findAll { k, v -> v }.keySet() ?: 'otheros'
 
+    def archEvaluators = [
         arm32  : filePath.contains('arm-') || filePath.contains('arm32-'),
         arm64  : filePath.contains('arm64-'),
         x64    : filePath.contains('x64'),
         i586   : filePath.contains('i586'),
         sparcv9: filePath.contains('sparcv9'),
+        x86    : filePath.contains('solx86')
     ]
-    def retval = tagEvaluators.findAll { k, v -> v }.keySet()
-    if (retval.contains('jre') && retval.contains('sjre')) {
-      retval -= 'jre'
-    }
-    def otherSetting = [
-        othertype: ['jdk', 'jre', 'sjre'],
-        otheros  : ['macos', 'win', 'rpm', 'linux', 'solaris'],
-        otherarch: ['arm32', 'arm64', 'x64', 'i586', 'sparcv9'],
+    retval += archEvaluators.findAll { k, v -> v }.keySet() ?: 'otherarch'
+
+    def fileTypeEvaluators = [
+        dmg    : filePath.endsWith('.dmg'),
+        targz  : filePath.contains('.tar.gz'),
+        bin    : filePath.contains('.bin'),
+        sh    : filePath.contains('.sh'),
+        tarz    : filePath.contains('.tar.Z'),
+        exe    : filePath.contains('.exe'),
+        tar    : filePath.contains('.tar'),
+        zip    : filePath.contains('.zip'),
+        rpm    : filePath.contains('.rpm'),
     ]
-    otherSetting.each { k, v ->
-      if (!retval.toList().intersect(v as Iterable)) {
-        retval += k
-      }
-    }
+    retval += fileTypeEvaluators.findAll { k, v -> v }.keySet() ?: 'otherfile'
+
     retval
   }
 
