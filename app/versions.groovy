@@ -29,7 +29,7 @@ if (!(format in ['text/tab-separated-values', 'application/json'])) {
         flatten() as List<JavaBuild>
 
     List<JavaBuild> builds = allBuilds.
-        findAll { b -> version ? b.key.contains(version) : true }
+        findAll { b -> version ? b.version == version : true }
 
     tags.each { t ->
       log.info "Filtering ${builds.size()} builds for $t"
@@ -53,7 +53,7 @@ if (!(format in ['text/tab-separated-values', 'application/json'])) {
         break
     }
 
-    memcache.put(memcacheKey, resp, byDeltaSeconds(60* 60 * 24), SET_ALWAYS)
+    memcache.put(memcacheKey, resp, byDeltaSeconds(60 * 60 * 24), SET_ALWAYS)
     response.setHeader('X-CacheKey', memcacheKey)
     response.setHeader('X-CacheStatus', 'Miss')
     println resp

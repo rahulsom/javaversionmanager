@@ -1,5 +1,6 @@
 package com.github.rahulsom.jvm
 
+import groovy.transform.Memoized
 import groovy.transform.ToString
 import groovy.util.logging.Log
 
@@ -52,6 +53,11 @@ class JavaBuild implements Serializable {
   }
 
   String getVersion() {
+    return computeVersion(key)
+  }
+
+  @Memoized
+  private static String computeVersion(String key) {
     switch (key) {
       case ~/(\d+-)?(jdk|jre|sjre|j2sdk|j2re)-1\.((\d+)(\.\d+)?)B?(_(\d+[^-]+))?-.*/:
         def m = key =~ /(\d+-)?(jdk|jre|sjre|j2sdk|j2re)-1\.((\d+)(\.\d+)?)B?(_(\d+[^-]+))?-.*/
