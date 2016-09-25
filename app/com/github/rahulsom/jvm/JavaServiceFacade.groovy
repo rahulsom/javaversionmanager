@@ -60,7 +60,7 @@ class JavaServiceFacade {
       body.findAll(fileLineRegex).collect { fileLine ->
         def m = fileLine =~ fileLineRegex
         def version = clVal.find { it.key == m[0][1] }
-        if (version) {
+        if (version && !(version.key =~ /FJ-KES-..-G-F/)) {
           def filePath = m[0][5].trim() as String
           def size = m[0][4].trim() as String
           def title = m[0][3].trim() as String
@@ -77,6 +77,7 @@ class JavaServiceFacade {
                 key: version.key, majorVersion: majorVersion))
           }
         }
+        version
       }
 
       clVal

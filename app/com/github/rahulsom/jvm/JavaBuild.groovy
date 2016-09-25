@@ -92,8 +92,6 @@ class JavaBuild implements Serializable {
       case ~/(jdk|jre|sjre)-(\d+)(u(\d+))?-.*/:
         def m = key =~ /(jdk|jre|sjre)-(\d+)(u(\d+))?-.*/
         return (m[0].size() > 4 && m[0][4]) ? "${m[0][2]}u${m[0][4]}" : "${m[0][2]}u0"
-      case ~/FJ-KES-..-G-F/:
-        return '3u0'
       default:
         return "-1"
     }
