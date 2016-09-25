@@ -65,18 +65,18 @@ class JavaBuild implements Serializable {
         } else {
           return "${major}u0"
         }
-      case ~/(JRE|JDK|J2RE|J2SDK|JRE..|JDK..)-1(\d)(\d)_(\d+)-.*/:
-        def m = key =~ /(JRE|JDK|J2RE|J2SDK|JRE..|JDK..)-1(\d)(\d)_(\d+)-.*/
+      case ~/(JRE|JDK|J2RE|J2SDK|JRE..|JDK..)-1(\d)(\d)(_(\d+))?-.*/:
+        def m = key =~ /(JRE|JDK|J2RE|J2SDK|JRE..|JDK..)-1(\d)(\d)(_(\d+))?-.*/
+        log.info "m: ${m[0]}"
         def major = m[0][2]
-        def minor = m[0][3]
-        def build = m[0][4]
-        build = build.replaceAll('^0+', '')
-        return "${major}.${minor}u${build}"
+        def minor = m[0][3] == '0' ? '' : m[0][3]
+        def build = m[0][5] ?: '0'
+        build = build.replaceAll('^0+', '') ?: '0'
+        return "${major}${minor ? '.' : ''}${minor}u${build}"
       case ~/(jdk|jre|sjre)-(\d+)(u(\d+))?-.*/:
         def m = key =~ /(jdk|jre|sjre)-(\d+)(u(\d+))?-.*/
         return (m[0].size() > 4 && m[0][4]) ? "${m[0][2]}u${m[0][4]}" : "${m[0][2]}u0"
       default:
-        log.info "returning default"
         return "-1"
     }
   }
