@@ -33,7 +33,8 @@ class JavaBuild implements Serializable {
         macos  : filePath.endsWith('.dmg') || filePath.contains('macosx'),
         win    : filePath.endsWith('.exe') || filePath.contains('windows'),
         linux  : (title.toLowerCase().contains('linux') || filePath.contains('linux')),
-        solaris: title.toLowerCase().contains('solaris') || filePath.contains('solaris') || filePath.contains('solsparc') || filePath.contains('solx86'),
+        solaris: title.toLowerCase().contains('solaris') || filePath.contains('solaris')
+            || filePath.contains('solsparc') || filePath.contains('solx86'),
     ]
     retval += osEvaluators.findAll { k, v -> v }.keySet() ?: 'otheros'
 
@@ -43,20 +44,20 @@ class JavaBuild implements Serializable {
         x64    : filePath.contains('x64'),
         i586   : filePath.contains('i586'),
         sparcv9: filePath.contains('sparcv9'),
-        x86    : filePath.contains('solx86')
+        x86    : filePath.contains('x86')
     ]
     retval += archEvaluators.findAll { k, v -> v }.keySet() ?: 'otherarch'
 
     def fileTypeEvaluators = [
-        dmg    : filePath.endsWith('.dmg'),
-        targz  : filePath.endsWith('.tar.gz'),
-        bin    : filePath.endsWith('.bin'),
-        sh    : filePath.endsWith('.sh'),
-        tarz    : filePath.endsWith('.tar.Z'),
-        exe    : filePath.endsWith('.exe'),
-        tar    : filePath.endsWith('.tar'),
-        zip    : filePath.endsWith('.zip'),
-        rpm    : filePath.endsWith('.rpm'),
+        dmg  : filePath.endsWith('.dmg'),
+        targz: filePath.endsWith('.tar.gz'),
+        bin  : filePath.endsWith('.bin'),
+        sh   : filePath.endsWith('.sh'),
+        tarz : filePath.endsWith('.tar.Z'),
+        exe  : filePath.endsWith('.exe'),
+        tar  : filePath.endsWith('.tar'),
+        zip  : filePath.endsWith('.zip'),
+        rpm  : filePath.endsWith('.rpm'),
     ]
     retval += fileTypeEvaluators.findAll { k, v -> v }.keySet() ?: 'otherfile'
 
@@ -70,6 +71,11 @@ class JavaBuild implements Serializable {
   @Memoized
   private static String computeVersion(String key) {
     switch (key) {
+      case ~/(jre|jdk)-(\d+)-ea\+(\d+)_.*/:
+        def m = key =~ /(jre|jdk)-(\d+)-ea\+(\d+)_.*/
+        def major = m[0][2]
+        def minor = m[0][3]
+        return "${major}ea${minor}"
       case ~/(\d+-)?(jdk|jre|sjre|j2sdk|j2re)-1\.((\d+)(\.\d+)?)[AB]?(_(\d+[^-]+))?-.*/:
         def m = key =~ /(\d+-)?(jdk|jre|sjre|j2sdk|j2re)-1\.((\d+)(\.\d+)?)[AB]?(_(\d+[^-]+))?-.*/
         def major = (m[0].size() < 5 || m[0][5] == null || m[0][5] == '.0') ? m[0][4] : m[0][3]

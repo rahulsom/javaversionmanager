@@ -32,16 +32,11 @@ class JavaServiceFacade {
     def expirationTime = 60 * 60 * 24
 
     if (reload || !theCache.contains(memcacheKey)) {
-      def builds = computeArchiveVersions()*.versions*.builds.flatten()  as List<JavaBuild>
+      def builds = computeArchiveVersions()*.versions*.builds.flatten() as List<JavaBuild>
       builds.addAll(currentVersionBuilds)
+      builds.addAll(earlyAccessBuilds)
 
-      builds.sort {a, b ->
-        def (_a, aMajor, aType, aMinor) = (a.version =~  /(\d+)([a-z]+)(\d+)/)[0]
-        def (_b, bMajor, bType, bMinor) = (b.version =~  /(\d+)([a-z]+)(\d+)/)[0]
-        Double.parseDouble(aMajor) <=> Double.parseDouble(bMajor) ?:
-            aType <=> bType ?:
-                Integer.parseInt(aMinor) <=> Integer.parseInt(bMinor)
-      }
+      builds.sort(true, new BuildComparator())
 
       def json = zip(gson.toJson(builds.reverse()))
       theCache.clearAll()
@@ -53,9 +48,22 @@ class JavaServiceFacade {
     gson.fromJson(json, collectionType) as List<JavaBuild>
   }
 
+  private List<JavaBuild> getEarlyAccessBuilds() {
+    def document = Jsoup.parse(getUrl.call(earlyAccessUrl))
+    def scriptTag = document.select('script').find { it.block && it.data().contains('getAskLicense') }.data()
+    def eaRegex = /document\.getElementById\("(.+)"\)\.href *= *"(http.*)";/
+    scriptTag.findAll(eaRegex).
+        collect { urlLine ->
+          def m = urlLine =~ eaRegex
+          def filePath = m[0][2].trim()
+          new JavaBuild(key: filePath.split('/')[-1], filePath: filePath, majorVersion: '9', title: '')
+        }.
+        findAll { it.version != '-1' }
+  }
+
   private List<JavaBuild> getCurrentVersionBuilds() {
     def document = Jsoup.parse(getUrl.call(currentUrl))
-    def javaSeLink = document.select('a').find {it.text().trim() == 'Java SE'}.attr('href')
+    def javaSeLink = document.select('a').find { it.text().trim() == 'Java SE' }.attr('href')
     document = Jsoup.parse(getUrl.call(computeUrl(new URL(currentUrl), javaSeLink)))
     def downloadLink = document.select('img[alt="Java SE Downloads"]').parents().head().attr('href')
     def m = downloadLink =~ /.*downloads\/jdk(\d+)-downloads.*/
