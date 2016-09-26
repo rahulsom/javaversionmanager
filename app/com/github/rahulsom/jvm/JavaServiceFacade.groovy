@@ -32,9 +32,18 @@ class JavaServiceFacade {
     def expirationTime = 60 * 60 * 24
 
     if (reload || !theCache.contains(memcacheKey)) {
-      def versions = computeArchiveVersions()*.versions*.builds.flatten()  as List<JavaBuild>
-      versions.addAll(currentVersionBuilds)
-      def json = zip(gson.toJson(versions))
+      def builds = computeArchiveVersions()*.versions*.builds.flatten()  as List<JavaBuild>
+      builds.addAll(currentVersionBuilds)
+
+      builds.sort {a, b ->
+        def (_a, aMajor, aType, aMinor) = (a.version =~  /(\d+)([a-z]+)(\d+)/)[0]
+        def (_b, bMajor, bType, bMinor) = (b.version =~  /(\d+)([a-z]+)(\d+)/)[0]
+        Double.parseDouble(aMajor) <=> Double.parseDouble(bMajor) ?:
+            aType <=> bType ?:
+                Integer.parseInt(aMinor) <=> Integer.parseInt(bMinor)
+      }
+
+      def json = zip(gson.toJson(builds.reverse()))
       theCache.clearAll()
       theCache.put(memcacheKey, json, byDeltaSeconds(expirationTime), SET_ALWAYS)
     }
