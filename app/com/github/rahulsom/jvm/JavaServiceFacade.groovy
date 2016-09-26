@@ -4,6 +4,7 @@ import com.google.appengine.api.memcache.MemcacheService
 import com.google.appengine.api.memcache.MemcacheServiceFactory
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import groovy.json.JsonSlurper
 import groovy.util.logging.Log
 import org.jsoup.Jsoup
 
@@ -27,11 +28,12 @@ class JavaServiceFacade {
   private Gson gson = new Gson()
 
   List<JavaBuild> getBuilds(boolean reload = false) {
-    def memcacheKey = 'archiveVersions'
+    def memcacheKey = 'allBuilds'
     def expirationTime = 60 * 60 * 24
 
     if (reload || !theCache.contains(memcacheKey)) {
-      def versions = computeArchiveVersions()*.versions*.builds.flatten()
+      def versions = computeArchiveVersions()*.versions*.builds.flatten()  as List<JavaBuild>
+      versions.addAll(currentVersionBuilds)
       def json = zip(gson.toJson(versions))
       theCache.clearAll()
       theCache.put(memcacheKey, json, byDeltaSeconds(expirationTime), SET_ALWAYS)
@@ -40,6 +42,18 @@ class JavaServiceFacade {
     def collectionType = new TypeToken<Collection<JavaBuild>>() {}.type;
     def json = unzip(theCache.get(memcacheKey) as byte[])
     gson.fromJson(json, collectionType) as List<JavaBuild>
+  }
+
+  private List<JavaBuild> getCurrentVersionBuilds() {
+    def document = Jsoup.parse(getUrl.call(currentUrl))
+    def javaSeLink = document.select('a').find {it.text().trim() == 'Java SE'}.attr('href')
+    document = Jsoup.parse(getUrl.call(computeUrl(new URL(currentUrl), javaSeLink)))
+    def downloadLink = document.select('img[alt="Java SE Downloads"]').parents().head().attr('href')
+    def m = downloadLink =~ /.*downloads\/jdk(\d+)-downloads.*/
+    def majorVersion = m[0][1] as String
+    def releaseVersions = getArchiveVersions(computeUrl(new URL(currentUrl), downloadLink), majorVersion)
+    log.info "Java SE Links: $releaseVersions"
+    releaseVersions.builds.flatten()
   }
 
   private List<JavaReleaseVersion> getArchiveVersions(String url, String majorVersion) {
@@ -55,15 +69,17 @@ class JavaServiceFacade {
         new JavaReleaseVersion(key: m[0][1].trim(), versionTitle: m[0][2].trim())
       }
 
-      def fileLineRegex =
-          /downloads\['(.+)'\]\['files'\]\['(.+)'\] = \{ *"title": *"(.+)", *"size": *"(.+)", *"filepath": *"(.+)",? *\};/
+      def fileLineRegex = /downloads\['(.+)'\]\['files'\]\['(.+)'\] = (\{.*\});/
       body.findAll(fileLineRegex).collect { fileLine ->
         def m = fileLine =~ fileLineRegex
         def version = clVal.find { it.key == m[0][1] }
-        if (version && !(version.key =~ /FJ-KES-..-G-F/)) {
-          def filePath = m[0][5].trim() as String
-          def size = m[0][4].trim() as String
-          def title = m[0][3].trim() as String
+        if (version && !(version.key =~ /FJ-KES-..-G-F/) && !(version.key.contains('demo'))) {
+          def json = m[0][3]
+          def filePathBlob = new JsonSlurper().parseText(json)
+
+          def filePath = filePathBlob.filepath
+          def size = filePathBlob.size
+          def title = filePathBlob.title
           if (!filePath.contains('jre_config') &&
               !filePath.endsWith('.ps') &&
               !filePath.endsWith('.pdf') &&
@@ -85,18 +101,22 @@ class JavaServiceFacade {
   }
 
   private List<JavaMajorVersion> computeArchiveVersions() {
-    def rootUrl = new URL(archiveUrl)
-    def document = Jsoup.parse(getUrl.call(rootUrl.toString()))
+    def document = Jsoup.parse(getUrl.call(archiveUrl))
     document.select('a').
         findAll { it.text() =~ /Java SE \d.*/ }.
         collect {
           def version = it.text()
           def href = it.attr('href')
-          def versions = rootUrl.port > 0 ?
-              getArchiveVersions(new URL("${rootUrl.protocol}://${rootUrl.host}:${rootUrl.port}${href}").toString(), version) :
-              getArchiveVersions(new URL("${rootUrl.protocol}://${rootUrl.host}${href}").toString(), version)
+          String url = computeUrl(new URL(archiveUrl), href)
+          def versions = getArchiveVersions(url, version)
           new JavaMajorVersion(version: version, link: href, versions: versions)
         }
+  }
+
+  private String computeUrl(URL startingUrl, String href) {
+    startingUrl.port > 0 ?
+        "${startingUrl.protocol}://${startingUrl.host}:${startingUrl.port}${href}" :
+        "${startingUrl.protocol}://${startingUrl.host}${href}"
   }
 
   private static byte[] zip(String s) {

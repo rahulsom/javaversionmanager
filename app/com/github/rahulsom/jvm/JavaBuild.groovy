@@ -49,14 +49,14 @@ class JavaBuild implements Serializable {
 
     def fileTypeEvaluators = [
         dmg    : filePath.endsWith('.dmg'),
-        targz  : filePath.contains('.tar.gz'),
-        bin    : filePath.contains('.bin'),
-        sh    : filePath.contains('.sh'),
-        tarz    : filePath.contains('.tar.Z'),
-        exe    : filePath.contains('.exe'),
-        tar    : filePath.contains('.tar'),
-        zip    : filePath.contains('.zip'),
-        rpm    : filePath.contains('.rpm'),
+        targz  : filePath.endsWith('.tar.gz'),
+        bin    : filePath.endsWith('.bin'),
+        sh    : filePath.endsWith('.sh'),
+        tarz    : filePath.endsWith('.tar.Z'),
+        exe    : filePath.endsWith('.exe'),
+        tar    : filePath.endsWith('.tar'),
+        zip    : filePath.endsWith('.zip'),
+        rpm    : filePath.endsWith('.rpm'),
     ]
     retval += fileTypeEvaluators.findAll { k, v -> v }.keySet() ?: 'otherfile'
 
