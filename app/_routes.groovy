@@ -1,4 +1,5 @@
 get '/',              forward: '/index.html'
 get '/builds',        forward: '/builds.groovy'
 get '/versions',      forward: '/versions.groovy'
+get '/tags',          forward: '/tags.groovy'
 get '/admin/reload',  forward: '/admin/reload.groovy'

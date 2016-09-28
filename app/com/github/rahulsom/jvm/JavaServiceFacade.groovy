@@ -28,7 +28,11 @@ class JavaServiceFacade {
   private Gson gson = new Gson()
 
   List<String> getVersionNumbers() {
-    getBuilds(false).collect {it.version}.unique()
+    getBuilds(false).collect { it.version }.unique()
+  }
+
+  List<String> getTags() {
+    getBuilds(false).collect { it.tags.join(' ') }.unique()
   }
 
   List<JavaBuild> getBuilds(boolean reload = false) {
