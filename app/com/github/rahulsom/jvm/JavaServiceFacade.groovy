@@ -32,6 +32,7 @@ class JavaServiceFacade {
     def expirationTime = 60 * 60 * 24
 
     if (reload || !theCache.contains(memcacheKey)) {
+      log.info "Computing cacheable value"
       def builds = computeArchiveVersions()*.versions*.builds.flatten() as List<JavaBuild>
       builds.addAll(currentVersionBuilds)
       builds.addAll(earlyAccessBuilds)
@@ -41,10 +42,12 @@ class JavaServiceFacade {
       def json = zip(gson.toJson(builds.reverse()))
       theCache.clearAll()
       theCache.put(memcacheKey, json, byDeltaSeconds(expirationTime), SET_ALWAYS)
+      log.info "Done computing cacheable value"
     }
 
     def collectionType = new TypeToken<Collection<JavaBuild>>() {}.type;
     def json = unzip(theCache.get(memcacheKey) as byte[])
+    log.info "Extracted from cache"
     gson.fromJson(json, collectionType) as List<JavaBuild>
   }
 
