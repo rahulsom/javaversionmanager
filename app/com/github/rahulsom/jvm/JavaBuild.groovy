@@ -46,7 +46,10 @@ class JavaBuild implements Serializable {
         x64    : filePath.contains('x64'),
         i586   : filePath.contains('i586'),
         sparcv9: filePath.contains('sparcv9'),
-        x86    : filePath.contains('x86')
+        sparc  : filePath.contains('sparc'),
+        x86    : filePath.contains('x86'),
+        ia64   : filePath.contains('ia64'),
+        amd64  : filePath.contains('amd64'),
     ]
     retval += archEvaluators.find { k, v -> v }?.key ?: 'otherarch'
 
