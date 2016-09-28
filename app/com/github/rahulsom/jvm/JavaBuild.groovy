@@ -24,7 +24,7 @@ class JavaBuild implements Serializable {
         jdk : filePath.contains('jdk') && !filePath.contains('jre') && !filePath.contains('doc'),
         sjre: key.contains('sjre') || filePath.contains('server-jre'),
     ]
-    retval += buildTypeEvaluators.findAll { k, v -> v }.keySet() ?: 'othertype'
+    retval += buildTypeEvaluators.find { k, v -> v }?.key ?: 'othertype'
     if (retval.contains('jre') && retval.contains('sjre')) {
       retval -= 'jre'
     }
@@ -36,7 +36,7 @@ class JavaBuild implements Serializable {
         solaris: title.toLowerCase().contains('solaris') || filePath.contains('solaris')
             || filePath.contains('solsparc') || filePath.contains('solx86'),
     ]
-    retval += osEvaluators.findAll { k, v -> v }.keySet() ?: 'otheros'
+    retval += osEvaluators.find { k, v -> v }?.key ?: 'otheros'
 
     def archEvaluators = [
         arm32  : filePath.contains('arm-') || filePath.contains('arm32-'),
@@ -46,7 +46,7 @@ class JavaBuild implements Serializable {
         sparcv9: filePath.contains('sparcv9'),
         x86    : filePath.contains('x86')
     ]
-    retval += archEvaluators.findAll { k, v -> v }.keySet() ?: 'otherarch'
+    retval += archEvaluators.find { k, v -> v }?.key ?: 'otherarch'
 
     def fileTypeEvaluators = [
         dmg  : filePath.endsWith('.dmg'),
@@ -59,7 +59,7 @@ class JavaBuild implements Serializable {
         zip  : filePath.endsWith('.zip'),
         rpm  : filePath.endsWith('.rpm'),
     ]
-    retval += fileTypeEvaluators.findAll { k, v -> v }.keySet() ?: 'otherfile'
+    retval += fileTypeEvaluators.find { k, v -> v }?.key ?: 'otherfile'
 
     retval
   }

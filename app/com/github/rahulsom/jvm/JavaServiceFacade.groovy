@@ -31,13 +31,23 @@ class JavaServiceFacade {
     getBuilds(false).collect { it.version }.unique()
   }
 
-  List<String> getTags() {
-    getBuilds(false).collect { it.tags.join(' ') }.unique()
+  Map<String, List<String>> getTags() {
+    def tagList = this.builds*.tags.unique()
+    [
+        type: tagList.collect { it[0] }.unique(),
+        os: tagList.collect { it[1] }.unique(),
+        arch: tagList.collect { it[2] }.unique(),
+        fileType: tagList.collect { it[3] }.unique(),
+    ]
+  }
+
+  List<String> getTagSets() {
+    this.builds.collect { it.tags.join(' ') }.unique()
   }
 
   List<JavaBuild> getBuilds(boolean reload = false) {
     def memcacheKey = 'allBuilds'
-    def expirationTime = 60 * 60 * 24
+    def expirationTime = 60 * 60 * 48
 
     if (reload || !theCache.contains(memcacheKey)) {
       log.info "Computing cacheable value"
