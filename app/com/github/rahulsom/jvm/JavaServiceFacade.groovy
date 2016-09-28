@@ -69,8 +69,7 @@ class JavaServiceFacade {
     def m = downloadLink =~ /.*downloads\/jdk(\d+)-downloads.*/
     def majorVersion = m[0][1] as String
     def releaseVersions = getArchiveVersions(computeUrl(new URL(currentUrl), downloadLink), majorVersion)
-    log.info "Java SE Links: $releaseVersions"
-    releaseVersions.builds.flatten()
+    releaseVersions.collectNested {it.builds}
   }
 
   private List<JavaReleaseVersion> getArchiveVersions(String url, String majorVersion) {
