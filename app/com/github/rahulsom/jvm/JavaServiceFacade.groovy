@@ -33,13 +33,12 @@ class JavaServiceFacade {
 
     if (reload || !theCache.contains(memcacheKey)) {
       log.info "Computing cacheable value"
-      def builds = computeArchiveVersions()*.versions*.builds.flatten() as List<JavaBuild>
+      def builds = [] as List<JavaBuild>
+      builds.addAll(computeArchiveVersions().collectNested { it.versions }.collectNested { it.builds })
       builds.addAll(currentVersionBuilds)
       builds.addAll(earlyAccessBuilds)
 
-      builds.sort(true, new BuildComparator())
-
-      def json = zip(gson.toJson(builds.reverse()))
+      def json = zip(gson.toJson(builds.flatten().sort(false, new BuildComparator()).reverse()))
       theCache.clearAll()
       theCache.put(memcacheKey, json, byDeltaSeconds(expirationTime), SET_ALWAYS)
       log.info "Done computing cacheable value"
@@ -72,7 +71,7 @@ class JavaServiceFacade {
     def m = downloadLink =~ /.*downloads\/jdk(\d+)-downloads.*/
     def majorVersion = m[0][1] as String
     def releaseVersions = getArchiveVersions(computeUrl(new URL(currentUrl), downloadLink), majorVersion)
-    releaseVersions.collectNested {it.builds}
+    releaseVersions.collectNested { it.builds }
   }
 
   private List<JavaReleaseVersion> getArchiveVersions(String url, String majorVersion) {
