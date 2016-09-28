@@ -27,6 +27,10 @@ class JavaServiceFacade {
   private Closure<String> getUrl = theCache.memoize { String url -> new URL(url).get().text }
   private Gson gson = new Gson()
 
+  List<String> getVersionNumbers() {
+    getBuilds(false).collect {it.version}.unique()
+  }
+
   List<JavaBuild> getBuilds(boolean reload = false) {
     def memcacheKey = 'allBuilds'
     def expirationTime = 60 * 60 * 24
