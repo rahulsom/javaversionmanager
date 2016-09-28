@@ -11,7 +11,6 @@ cron {
 
 web {
   security = [
-      '*'    : ['/versions', '/'],
       'admin': ["/admin/*"],
   ]
 }
