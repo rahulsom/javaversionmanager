@@ -20,9 +20,11 @@ class JavaBuild implements Serializable {
   List<String> getTags() {
     def retval = []
     def buildTypeEvaluators = [
-        jre : filePath.contains('jre') || title.contains('Runtime'),
-        jdk : filePath.contains('jdk') && !filePath.contains('jre') && !filePath.contains('doc'),
         sjre: key.contains('sjre') || filePath.contains('server-jre'),
+        jre : filePath.contains('jre') || title.contains('Runtime') || key.contains('j2re') || key.contains('J2RE') ||
+            key.contains('JRE'),
+        jdk : (filePath.contains('jdk') || key.contains('j2sdk') || key.contains('J2SDK') || key.contains('JDK')) &&
+            !filePath.contains('jre') && !filePath.contains('doc'),
     ]
     retval += buildTypeEvaluators.find { k, v -> v }?.key ?: 'othertype'
     if (retval.contains('jre') && retval.contains('sjre')) {
