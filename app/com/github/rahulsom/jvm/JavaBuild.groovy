@@ -45,6 +45,7 @@ class JavaBuild implements Serializable {
         arm64  : filePath.contains('arm64-'),
         x64    : filePath.contains('x64'),
         i586   : filePath.contains('i586'),
+        i386   : filePath.contains('i386'),
         sparcv9: filePath.contains('sparcv9'),
         sparc  : filePath.contains('sparc'),
         x86    : filePath.contains('x86'),
