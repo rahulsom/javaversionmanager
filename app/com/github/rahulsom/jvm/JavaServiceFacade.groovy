@@ -24,7 +24,18 @@ class JavaServiceFacade {
   private static final String earlyAccessUrl = 'https://jdk9.java.net/download/'
 
   private MemcacheService theCache = MemcacheServiceFactory.memcacheService
-  private Closure<String> getUrl = theCache.memoize { String url -> new URL(url).get().text }
+
+  private static String getUrl(String url) {
+    int tries = 3
+    while (tries --) {
+      try {
+        return new URL(url).get().text
+      } catch (Exception ignore) {
+
+      }
+    }
+    throw new RuntimeException('Could not get text from url')
+  }
   private Gson gson = new Gson()
 
   List<String> getVersionNumbers() {
@@ -34,9 +45,9 @@ class JavaServiceFacade {
   Map<String, List<String>> getTags() {
     def tagList = this.builds*.tags.unique()
     [
-        type: tagList.collect { it[0] }.unique(),
-        os: tagList.collect { it[1] }.unique(),
-        arch: tagList.collect { it[2] }.unique(),
+        type    : tagList.collect { it[0] }.unique(),
+        os      : tagList.collect { it[1] }.unique(),
+        arch    : tagList.collect { it[2] }.unique(),
         fileType: tagList.collect { it[3] }.unique(),
     ]
   }
@@ -69,7 +80,7 @@ class JavaServiceFacade {
   }
 
   private List<JavaBuild> getEarlyAccessBuilds() {
-    def document = Jsoup.parse(getUrl.call(earlyAccessUrl))
+    def document = Jsoup.parse(getUrl(earlyAccessUrl))
     def scriptTag = document.select('script').find { it.block && it.data().contains('getAskLicense') }.data()
     def eaRegex = /document\.getElementById\("(.+)"\)\.href *= *"(http.*)";/
     scriptTag.findAll(eaRegex).
@@ -82,9 +93,9 @@ class JavaServiceFacade {
   }
 
   private List<JavaBuild> getCurrentVersionBuilds() {
-    def document = Jsoup.parse(getUrl.call(currentUrl))
+    def document = Jsoup.parse(getUrl(currentUrl))
     def javaSeLink = document.select('a').find { it.text().trim() == 'Java SE' }.attr('href')
-    document = Jsoup.parse(getUrl.call(computeUrl(new URL(currentUrl), javaSeLink)))
+    document = Jsoup.parse(getUrl(computeUrl(new URL(currentUrl), javaSeLink)))
     def downloadLink = document.select('img[alt="Java SE Downloads"]').parents().head().attr('href')
     def m = downloadLink =~ /.*downloads\/jdk(\d+)-downloads.*/
     def majorVersion = m[0][1] as String
@@ -93,7 +104,7 @@ class JavaServiceFacade {
   }
 
   private List<JavaReleaseVersion> getArchiveVersions(String url, String majorVersion) {
-    def document = Jsoup.parse(getUrl.call(url))
+    def document = Jsoup.parse(getUrl(url))
 
     def scripts = document.select('script')*.data().
         findAll { it?.contains('downloads[') }
@@ -137,7 +148,7 @@ class JavaServiceFacade {
   }
 
   private List<JavaMajorVersion> computeArchiveVersions() {
-    def document = Jsoup.parse(getUrl.call(archiveUrl))
+    def document = Jsoup.parse(getUrl(archiveUrl))
     document.select('a').
         findAll { it.text() =~ /Java SE \d.*/ }.
         collect {
