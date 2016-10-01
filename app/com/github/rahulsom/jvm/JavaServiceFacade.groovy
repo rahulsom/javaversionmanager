@@ -124,7 +124,7 @@ class JavaServiceFacade {
           def json = m[0][3]
           def filePathBlob = new JsonSlurper().parseText(json)
 
-          def filePath = filePathBlob.filepath
+          def filePath = filePathBlob.filepath.replace('/otn/', '/otn-pub/')
           def size = filePathBlob.size
           def title = filePathBlob.title
           if (!filePath.contains('jre_config') &&
