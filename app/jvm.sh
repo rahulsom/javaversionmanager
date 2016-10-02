@@ -64,7 +64,7 @@ jvmUpdateCache() {
     fi
   else
     echo "TAGS: $TAGS"
-    curl -j -m 90 -A "jvm.sh/0.1" \
+    curl -sj -m 90 -A "jvm.sh/0.1" \
         "https://javaversionmanager.appspot.com/builds?tags=$TAGS" > ${CACHE_FILE}
   fi
 }
@@ -137,7 +137,7 @@ macosInstallJava() {
   echo "Will download from $URL to $ARCHIVE_DIR/$JDKFILE"
 
   curl --junk-session-cookies \
-      -L -b "oraclelicense=a" "$URL" -o "$ARCHIVE_DIR/$JDKFILE"
+      -sL -b "oraclelicense=a" "$URL" -o "$ARCHIVE_DIR/$JDKFILE"
 
   MOUNTDIR=$(echo $(hdiutil mount ${ARCHIVE_DIR}/"$JDKFILE" | tail -1 | awk '{$1=$2=""; print $0}') | xargs -0 echo)
   sudo installer -pkg "$MOUNTDIR/"*.pkg -target /
@@ -152,12 +152,28 @@ rpmInstallJava() {
   echo "Will download from $URL to $ARCHIVE_DIR/$JDKFILE"
 
   curl --junk-session-cookies \
-      -L -b "oraclelicense=a" "$URL" -o "$ARCHIVE_DIR/$JDKFILE"
+      -sL -b "oraclelicense=a" "$URL" -o "$ARCHIVE_DIR/$JDKFILE"
 
   sudo rpm -ivh ${ARCHIVE_DIR}/${JDKFILE}
 }
 
-rpmListLocal() {
+linuxTargzInstallJava() {
+  VER=$1
+
+  URL=$(cat ${CACHE_FILE} | grep ^${VER} | cut -d $'\t' -f 4 | sed -e 's/otn/otn-pub/g' | sed -e 's/otn-pub-pub/otn-pub/g')
+  JDKFILE=$(basename ${URL})
+  echo "Will download from $URL to $ARCHIVE_DIR/$JDKFILE"
+
+  curl --junk-session-cookies \
+      -sL -b "oraclelicense=a" "$URL" -o "$ARCHIVE_DIR/$JDKFILE"
+
+  mkdir -p /usr/java
+  cd /usr/java
+  tar xzf $ARCHIVE_DIR/$JDKFILE
+  cd -
+}
+
+linuxListLocal() {
   find /usr/java/ -maxdepth 1 -mindepth 1 ! -type l
 }
 
@@ -168,7 +184,7 @@ jvmInstallJava() {
     if [ ${PACKAGE} = rpm ]; then
       rpmInstallJava $1
     else
-      echo "Cannot install on non rpm yet"
+      linuxTargzInstallJava $1
     fi
   else
       echo "Cannot install on other oses"
@@ -184,9 +200,9 @@ jvmLs() {
     macosListLocal | while read -r JAVALINE; do macosToJava "$JAVALINE"; done
   elif [ ${OS} = linux ]; then
     if [ ${PACKAGE} = rpm ]; then
-      rpmListLocal | while read -r JAVALINE; do rpmToJava "$JAVALINE"; done
+      linuxListLocal | while read -r JAVALINE; do rpmToJava "$JAVALINE"; done
     else
-      echo "Cannot ls on non rpm yet"
+      linuxListLocal | while read -r JAVALINE; do rpmToJava "$JAVALINE"; done
     fi
   else
       echo "Cannot ls on other oses"
