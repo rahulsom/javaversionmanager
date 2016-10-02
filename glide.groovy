@@ -5,7 +5,7 @@ app {
 
 cron {
   entries = [
-      [url: "/admin/reload", description: "reload versions", schedule: "every day 00:00"],
+      [url: "/admin/reload", description: "reload versions", schedule: "every 6 hours"],
   ]
 }
 
