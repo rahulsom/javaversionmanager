@@ -170,7 +170,7 @@ linuxTargzInstallJava() {
   mkdir -p /usr/java
   cd /usr/java
   tar xzf $ARCHIVE_DIR/$JDKFILE
-  cd -
+  cd $OLDPWD
 }
 
 linuxListLocal() {
