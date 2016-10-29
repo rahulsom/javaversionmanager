@@ -54,18 +54,22 @@ jvmInit() {
 
 jvmUpdateCache() {
   if [ "$1" = "silent" ]; then
-    CHANGE_TIME=$(find ${CACHE_FILE} -mmin +1440 | wc -l)
+    if [ ! -f ${CACHE_FILE} ]; then
+      curl -fjs -m 90 -A "jvm.sh/0.1" \
+          "https://javaversionmanager.appspot.com/builds?tags=$TAGS" -o ${CACHE_FILE} &
+    fi
+    CHANGE_TIME=$(find ${CACHE_FILE} -mmin +1440 2>/dev/null| wc -l)
     if [ ${CHANGE_TIME} = 1 ]; then
       if [ ! -f ${OLD_CACHE} ]; then
         cp ${CACHE_FILE} ${OLD_CACHE}
       fi
       curl -fjs -m 90 -A "jvm.sh/0.1" \
-          "https://javaversionmanager.appspot.com/builds?tags=$TAGS" > ${CACHE_FILE} &
+          "https://javaversionmanager.appspot.com/builds?tags=$TAGS" -o ${CACHE_FILE} &
     fi
   else
     echo "TAGS: $TAGS"
     curl -sj -m 90 -A "jvm.sh/0.1" \
-        "https://javaversionmanager.appspot.com/builds?tags=$TAGS" > ${CACHE_FILE}
+        "https://javaversionmanager.appspot.com/builds?tags=$TAGS" -o ${CACHE_FILE}
   fi
 }
 
