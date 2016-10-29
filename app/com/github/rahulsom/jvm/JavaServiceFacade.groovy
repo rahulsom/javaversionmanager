@@ -113,12 +113,14 @@ class JavaServiceFacade {
       def titleLineRegex = /downloads\['(.+)'\]\['title'\] = "(.+)";/
       def clVal = body.findAll(titleLineRegex).collect { titleLine ->
         def m = titleLine =~ titleLineRegex
+        log.info "Found title match: ${m[0][0]}"
         new JavaReleaseVersion(key: m[0][1].trim(), versionTitle: m[0][2].trim())
       }
 
       def fileLineRegex = /downloads\['(.+)'\]\['files'\]\['(.+)'\] = (\{.*\});/
       body.findAll(fileLineRegex).collect { fileLine ->
         def m = fileLine =~ fileLineRegex
+        log.info "Found file match: ${m[0][0]}"
         def version = clVal.find { it.key == m[0][1] }
         if (version && !(version.key =~ /FJ-KES-..-G-F/) && !(version.key.contains('demo'))) {
           def json = m[0][3]
