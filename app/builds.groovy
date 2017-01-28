@@ -30,11 +30,9 @@ if (!(format.contains('text/tab-separated-values') || format.contains('applicati
 
     tags.each { t ->
       log.info "Filtering ${builds.size()} builds for $t"
-      if (t.startsWith('!')) {
-        builds = builds.findAll { b -> !b.tags.contains(t[1..-1]) }
-      } else {
-        builds = builds.findAll { b -> b.tags.contains(t) }
-      }
+      builds = t.startsWith('!') ?
+          builds.findAll { b -> !b.tags.contains(t[1..-1]) } :
+          builds.findAll { b -> b.tags.contains(t) }
     }
     log.info "Result is ${builds.size()} builds ${memcacheKey}"
 

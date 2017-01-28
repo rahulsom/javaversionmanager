@@ -62,12 +62,10 @@ class JavaServiceFacade {
 
     if (reload || !theCache.contains(memcacheKey)) {
       log.info "Computing cacheable value"
-      def builds = [] as List<JavaBuild>
-      builds.addAll(computeArchiveVersions().collectNested { it.versions }.collectNested { it.builds })
-      builds.addAll(currentVersionBuilds)
-      builds.addAll(earlyAccessBuilds)
+      def builds = archivedBuilds + currentVersionBuilds + earlyAccessBuilds
 
-      def json = zip(gson.toJson(builds.flatten().sort(false, new BuildComparator()).reverse()))
+      def sortedBuilds = builds.flatten().sort(false, new BuildComparator()).reverse()
+      def json = zip(gson.toJson(sortedBuilds))
       theCache.clearAll()
       theCache.put(memcacheKey, json, byDeltaSeconds(expirationTime), SET_ALWAYS)
       log.info "Done computing cacheable value"
@@ -79,7 +77,11 @@ class JavaServiceFacade {
     gson.fromJson(json, collectionType) as List<JavaBuild>
   }
 
-  private List<JavaBuild> getEarlyAccessBuilds() {
+  List<JavaBuild> getArchivedBuilds() {
+    computeArchiveVersions().collectNested { it.versions }.collectNested { it.builds }
+  }
+
+  List<JavaBuild> getEarlyAccessBuilds() {
     def document = Jsoup.parse(getUrl(earlyAccessUrl))
     def scriptTag = document.select('script').find { it.block && it.data().contains('getAskLicense') }.data()
     def eaRegex = /document\.getElementById\("(.+)"\)\.href *= *"(http.*)";/
@@ -92,18 +94,20 @@ class JavaServiceFacade {
         findAll { it.version != '-1' }
   }
 
-  private List<JavaBuild> getCurrentVersionBuilds() {
+  List<JavaBuild> getCurrentVersionBuilds() {
     def document = Jsoup.parse(getUrl(currentUrl))
     def javaSeLink = document.select('a').find { it.text().trim() == 'Java SE' }.attr('href')
+    log.info "Java SE Link: $javaSeLink"
     document = Jsoup.parse(getUrl(computeUrl(new URL(currentUrl), javaSeLink)))
-    def downloadLink = document.select('img[alt="Java SE Downloads"]').parents().head().attr('href')
+    def downloadLink = document.select('img[alt="Download JDK"]').parents().head().attr('href')
     def m = downloadLink =~ /.*downloads\/jdk(\d+)-downloads.*/
     def majorVersion = m[0][1] as String
+    log.info "DL Link: ${computeUrl(new URL(currentUrl), downloadLink)}"
     def releaseVersions = getArchiveVersions(computeUrl(new URL(currentUrl), downloadLink), majorVersion)
     releaseVersions.collectNested { it.builds }
   }
 
-  private List<JavaReleaseVersion> getArchiveVersions(String url, String majorVersion) {
+  List<JavaReleaseVersion> getArchiveVersions(String url, String majorVersion) {
     def document = Jsoup.parse(getUrl(url))
 
     def scripts = document.select('script')*.data().
@@ -111,16 +115,25 @@ class JavaServiceFacade {
 
     scripts.collect { body ->
       def titleLineRegex = /downloads\['(.+)'\]\['title'\] = "(.+)";/
+      def titleLineRegex2 = /downloads\['(.+)'\] = \{ ?title: "(.+)", .*\}/
       def clVal = body.findAll(titleLineRegex).collect { titleLine ->
         def m = titleLine =~ titleLineRegex
-        log.info "Found title match: ${m[0][0]}"
+        // log.info "Found title match: ${m[0][0]}"
         new JavaReleaseVersion(key: m[0][1].trim(), versionTitle: m[0][2].trim())
       }
+      if (!clVal) {
+        clVal = body.findAll(titleLineRegex2).collect { titleLine ->
+          def m = titleLine =~ titleLineRegex2
+          // log.info "Found title match: ${m[0][0]}"
+          new JavaReleaseVersion(key: m[0][1].trim(), versionTitle: m[0][2].trim())
+        }
+      }
+      log.info "clVal: $clVal"
 
       def fileLineRegex = /downloads\['(.+)'\]\['files'\]\['(.+)'\] = (\{.*\});/
       body.findAll(fileLineRegex).collect { fileLine ->
         def m = fileLine =~ fileLineRegex
-        log.info "Found file match: ${m[0][0]}"
+        // log.info "Found file match: ${m[0][0]}"
         def version = clVal.find { it.key == m[0][1] }
         if (version && !(version.key =~ /FJ-KES-..-G-F/) && !(version.key.contains('demo'))) {
           def json = m[0][3]
@@ -149,7 +162,7 @@ class JavaServiceFacade {
     }.flatten() as List<JavaReleaseVersion>
   }
 
-  private List<JavaMajorVersion> computeArchiveVersions() {
+  List<JavaMajorVersion> computeArchiveVersions() {
     def document = Jsoup.parse(getUrl(archiveUrl))
     document.select('a').
         findAll { it.text() =~ /Java SE \d.*/ }.
@@ -162,7 +175,7 @@ class JavaServiceFacade {
         }
   }
 
-  private String computeUrl(URL startingUrl, String href) {
+  String computeUrl(URL startingUrl, String href) {
     startingUrl.port > 0 ?
         "${startingUrl.protocol}://${startingUrl.host}:${startingUrl.port}${href}" :
         "${startingUrl.protocol}://${startingUrl.host}${href}"
