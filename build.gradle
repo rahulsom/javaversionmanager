@@ -4,9 +4,9 @@ plugins {
 }
 
 dependencies {
-  compile 'org.jsoup:jsoup:1.9.2'
-  compile 'com.opencsv:opencsv:3.8'
-  compile 'com.google.code.gson:gson:2.7'
+  compile 'org.jsoup:jsoup:1.10.2'
+  compile 'com.opencsv:opencsv:3.9'
+  compile 'com.google.code.gson:gson:2.8.0'
 
   testCompile 'org.gaelyk:gaelyk-spock:0.5'
 }
