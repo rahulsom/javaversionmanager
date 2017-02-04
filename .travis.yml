@@ -9,3 +9,5 @@ script: "./build.sh"
 before_install:
 - openssl aes-256-cbc -K $encrypted_66e7f6ae3c09_key -iv $encrypted_66e7f6ae3c09_iv
   -in .appcfg_oauth2_tokens_java.enc -out .appcfg_oauth2_tokens_java -d
+addons:
+  srcclr: true
