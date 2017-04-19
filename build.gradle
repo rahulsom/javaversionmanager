@@ -8,6 +8,8 @@ dependencies {
   compile 'com.opencsv:opencsv:3.9'
   compile 'com.google.code.gson:gson:2.8.0'
 
+  compile 'org.codehaus.groovy:groovy-all:2.4.9'
+
   testCompile 'org.gaelyk:gaelyk-spock:0.5'
 }
 
